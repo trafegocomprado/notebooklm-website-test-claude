@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Prep: Logan Marketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #08080c;
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 85% 30%, rgba(30, 58, 138, 0.15) 0%, transparent 50%);
+            background-attachment: fixed;
+            height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(15, 15, 23, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Typography for Markdown */
+        .markdown-content h1 { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 1rem; margin-top: 1.5rem; }
+        .markdown-content h2 { font-size: 1.5rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.75rem; margin-top: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
+        .markdown-content h3 { font-size: 1.25rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem; margin-top: 1rem; }
+        .markdown-content p { margin-bottom: 1rem; line-height: 1.7; color: #cbd5e1; }
+        .markdown-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-content ul li { margin-bottom: 0.5rem; }
+        .markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-content ol li { margin-bottom: 0.5rem; }
+        .markdown-content strong { color: #fff; font-weight: 600; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+        .markdown-content th, .markdown-content td { padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .markdown-content th { background: rgba(255,255,255,0.05); color: #fff; font-weight: 600; }
+        .markdown-content tr:last-child td { border-bottom: none; }
+
+        /* Tabs */
+        .tab-btn { transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); }
+        .tab-btn.active { background: rgba(139, 92, 246, 0.1); border-left-color: #8b5cf6; color: #fff; }
+
+        /* Flashcards */
+        .flashcard-container { perspective: 1000px; width: 100%; max-width: 600px; margin: 0 auto; height: 350px; }
+        .flashcard { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; position: relative; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .flashcard-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; text-align: center; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); }
+        .flashcard-front { background: linear-gradient(135deg, #4c1d95 0%, #3b0764 100%); color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .flashcard-back { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #cbd5e1; transform: rotateY(180deg); box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: rgba(212, 175, 55, 0.3); }
+        
+        /* Audio Visualizer */
+        .audio-bars { display: flex; gap: 4px; height: 24px; align-items: flex-end; }
+        .bar { width: 4px; background: #8b5cf6; border-radius: 2px; }
+        @keyframes bounce { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+        .playing .bar { animation: bounce 1.2s ease infinite; transform-origin: bottom; }
+        .playing .bar:nth-child(1) { animation-delay: 0.1s; }
+        .playing .bar:nth-child(2) { animation-delay: 0.4s; }
+        .playing .bar:nth-child(3) { animation-delay: 0.2s; }
+        .playing .bar:nth-child(4) { animation-delay: 0.5s; }
+        .playing .bar:nth-child(5) { animation-delay: 0.3s; }
+        
+        /* Quiz Styling */
+        .quiz-opt { transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1); }
+        .quiz-opt:hover { background: rgba(255,255,255,0.05); }
+        .quiz-opt.selected { background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6; }
+        .quiz-opt.correct { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
+        .quiz-opt.incorrect { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; }
+    </style>
+</head>
+<body class="text-slate-300 antialiased overflow-hidden flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="glass-panel border-b border-white/5 px-6 py-3 flex justify-between items-center z-10 relative">
+        <div class="flex items-center gap-3">
+            <span class="text-purple-500 text-xl"><i class="fa-solid fa-rocket"></i></span>
+            <span class="font-bold text-white tracking-wide">Antigravity OS</span>
+            <span class="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full ml-4 font-medium border border-purple-500/30">Meeting Prep</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-500/10 text-blue-300 px-3 py-1.5 rounded-md text-sm border border-blue-500/20 flex items-center gap-2">
+                <i class="fa-regular fa-calendar"></i> Mar 10, 2026
+            </div>
+            <button class="bg-white/5 hover:bg-white/10 text-white px-4 py-1.5 rounded-md text-sm transition-colors border border-white/10 flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="glass-panel w-64 border-r border-white/5 flex flex-col p-4 z-10">
+            <div class="mb-8 px-3">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Intelligence Artifacts</h2>
+                <div class="space-y-1">
+                    <button onclick="switchTab('briefing')" id="tab-briefing" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 active flex items-center gap-3">
+                        <i class="fa-solid fa-file-lines w-5 text-center"></i> Executive Briefing
+                    </button>
+                    <button onclick="switchTab('intel')" id="tab-intel" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 flex items-center gap-3">
+                        <i class="fa-solid fa-chess-knight w-5 text-center"></i> Competitive Intel
+                    </button>
+                    <button onclick="switchTab('research')" id="tab-research" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 flex items-center gap-3">
+                        <i class="fa-solid fa-magnifying-glass-chart w-5 text-center"></i> Deep Research
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-8 px-3">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Interactive Prep</h2>
+                <div class="space-y-1">
+                    <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 flex items-center gap-3">
+                        <i class="fa-solid fa-list-check w-5 text-center"></i> Knowledge Test
+                    </button>
+                    <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 flex items-center gap-3">
+                        <i class="fa-solid fa-layer-group w-5 text-center"></i> Flashcards
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-3">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Media</h2>
+                <button onclick="switchTab('infographic')" id="tab-infographic" class="tab-btn w-full text-left px-3 py-2.5 rounded-r-md text-sm text-slate-400 flex items-center gap-3">
+                    <i class="fa-solid fa-image w-5 text-center"></i> Market Infographic
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto relative p-8">
+            <!-- Header -->
+            <div class="glass-panel rounded-xl p-6 mb-8 flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-white/10">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Logan Marketing</h1>
+                    <p class="text-blue-300">Discovery Call & Partnership Exploration</p>
+                </div>
+                
+                <!-- Audio Player -->
+                <div class="bg-black/40 rounded-lg p-3 px-5 border border-white/10 flex items-center gap-5">
+                    <button id="playBtn" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-play ml-1" id="playIcon"></i>
+                    </button>
+                    <div>
+                        <div class="text-white text-sm font-medium mb-1">Briefing Podcast</div>
+                        <div class="text-slate-400 text-xs">AI Generated Summary</div>
+                    </div>
+                    <div class="audio-bars ml-2" id="visualizer">
+                        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    </div>
+                    <audio id="audioPlayer" src="audio_briefing.m4a"></audio>
+                </div>
+            </div>
+
+            <!-- Content Panes -->
+            <div class="glass-panel p-8 rounded-xl border-white/10 min-h-[500px]">
+                <!-- Markdown Container -->
+                <div id="md-container" class="markdown-content"></div>
+
+                <!-- Quiz Container -->
+                <div id="quiz-container" class="hidden">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-white mb-2">Knowledge Verification</h2>
+                        <p class="text-slate-400">Test your readiness before the meeting.</p>
+                    </div>
+                    <div id="quiz-content" class="max-w-2xl mx-auto space-y-6"></div>
+                    <div id="quiz-results" class="hidden mt-8 text-center p-6 bg-purple-900/20 rounded-xl border border-purple-500/30"></div>
+                </div>
+
+                <!-- Flashcards Container -->
+                <div id="flashcards-container" class="hidden">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-white mb-2">Rapid Review</h2>
+                        <p class="text-slate-400">Key intel points. Click card to flip.</p>
+                    </div>
+                    
+                    <div class="flashcard-container" onclick="this.querySelector('.flashcard').classList.toggle('flipped')">
+                        <div class="flashcard">
+                            <div class="flashcard-face flashcard-front">
+                                <div class="text-sm font-bold tracking-widest text-purple-300 uppercase mb-4">Question <span id="fc-current">1</span> of <span id="fc-total">X</span></div>
+                                <div class="text-xl md:text-2xl font-medium leading-relaxed" id="fc-q">Loading...</div>
+                                <div class="text-xs text-purple-200/50 mt-8 absolute bottom-6"><i class="fa-solid fa-hand-pointer mr-2"></i> Click to flip</div>
+                            </div>
+                            <div class="flashcard-face flashcard-back">
+                                <div class="text-sm font-bold tracking-widest text-yellow-500/80 uppercase mb-4">Answer</div>
+                                <div class="text-lg md:text-xl font-medium leading-relaxed text-white" id="fc-a">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center items-center gap-6 mt-8">
+                        <button onclick="prevCard()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex justify-center items-center"><i class="fa-solid fa-chevron-left"></i></button>
+                        <div id="fc-dots" class="flex gap-2"></div>
+                        <button onclick="nextCard()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex justify-center items-center"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Infographic Container -->
+                <div id="infographic-container" class="hidden text-center">
+                    <h2 class="text-2xl font-bold text-white mb-6">Market Infographic</h2>
+                    <img src="market_infographic.png" alt="Market Infographic" class="max-w-full rounded-lg border border-white/10 shadow-2xl mx-auto" />
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Raw Data Loading -->
+    <script>
+        // Store raw markdown content
+        const content = {
+            briefing: "",
+            intel: "",
+            research: "",
+            quizRaw: "",
+            flashcardsRaw: ""
+        };
+
+        // Fetch files synchronously on load
+        async function fetchContent() {
+            try { content.briefing = await fetch('01_briefing_doc.md' + '?t=' + Date.now()).then(r => r.text()); } catch(e){}
+            try { content.intel = await fetch('03_competitive_intel.md' + '?t=' + Date.now()).then(r => r.text()); } catch(e){}
+            try { content.research = await fetch('02_deep_research_report.md' + '?t=' + Date.now()).then(r => r.text()); } catch(e){}
+            try { content.quizRaw = await fetch('06_pre_call_quiz.md' + '?t=' + Date.now()).then(r => r.text()); } catch(e){}
+            try { content.flashcardsRaw = await fetch('07_flashcards.md' + '?t=' + Date.now()).then(r => r.text()); } catch(e){}
+            
+            initQuiz();
+            initFlashcards();
+            switchTab('briefing');
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'text-white'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('text-slate-400'));
+            
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active', 'text-white');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            // Hide all containers
+            document.getElementById('md-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('flashcards-container').classList.add('hidden');
+            document.getElementById('infographic-container').classList.add('hidden');
+
+            if (['briefing', 'intel', 'research'].includes(tabId)) {
+                document.getElementById('md-container').classList.remove('hidden');
+                document.getElementById('md-container').innerHTML = marked.parse(content[tabId] || "*Loading or not found*");
+            } else if (tabId === 'quiz') {
+                document.getElementById('quiz-container').classList.remove('hidden');
+            } else if (tabId === 'flashcards') {
+                document.getElementById('flashcards-container').classList.remove('hidden');
+            } else if (tabId === 'infographic') {
+                document.getElementById('infographic-container').classList.remove('hidden');
+            }
+        }
+
+        // Audio Player Logic
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const visualizer = document.getElementById('visualizer');
+
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playIcon.classList.replace('fa-play', 'fa-pause');
+                playIcon.classList.remove('ml-1');
+                visualizer.classList.add('playing');
+            } else {
+                audio.pause();
+                playIcon.classList.replace('fa-pause', 'fa-play');
+                playIcon.classList.add('ml-1');
+                visualizer.classList.remove('playing');
+            }
+        });
+
+        audio.addEventListener('ended', () => {
+            playIcon.classList.replace('fa-pause', 'fa-play');
+            playIcon.classList.add('ml-1');
+            visualizer.classList.remove('playing');
+        });
+
+        // Parse Quiz Data
+        let quizQuestions = [];
+        let score = 0;
+        
+        function initQuiz() {
+            if (!content.quizRaw) return;
+            // Simple markdown quiz parser (looks for questions and list items)
+            const lines = content.quizRaw.split('\n');
+            let currentQ = null;
+            
+            for(let line of lines) {
+                if (line.match(/^\d+\. /) || line.includes('?')) {
+                    if (currentQ) quizQuestions.push(currentQ);
+                    currentQ = { q: line.replace(/^\d+\.\s*/, '').replace(/\*\*/g, ''), opts: [], answer: 0 };
+                } else if (line.match(/^[\-\*]\s/)) {
+                    if (currentQ) {
+                        let text = line.replace(/^[\-\*]\s*/, '');
+                        let isAnswer = false;
+                        if (text.includes('[x]') || text.includes('[X]') || text.toLowerCase().includes('correct')) {
+                            isAnswer = true;
+                            text = text.replace(/\[x\]|\[X\]/g, '').replace(/\(Correct\)/ig, '').trim();
+                        }
+                        currentQ.opts.push(text);
+                        if (isAnswer) currentQ.answer = currentQ.opts.length - 1;
+                    }
+                }
+            }
+            if (currentQ) quizQuestions.push(currentQ);
+            
+            // Build UI
+            const qc = document.getElementById('quiz-content');
+            qc.innerHTML = '';
+            
+            quizQuestions.forEach((q, i) => {
+                let html = `<div class="bg-black/20 p-6 rounded-lg border border-white/5" id="qdiv-${i}">
+                    <h3 class="text-lg font-medium text-white mb-4">${i+1}. ${q.q}</h3>
+                    <div class="space-y-2">`;
+                
+                q.opts.forEach((opt, j) => {
+                    html += `<div class="quiz-opt p-3 rounded-md cursor-pointer flex items-center gap-3" onclick="answerQ(${i}, ${j})">
+                                <div class="w-5 h-5 rounded-full border border-slate-500 flex-shrink-0 flex items-center justify-center text-xs" id="circ-${i}-${j}"></div>
+                                <span>${opt}</span>
+                            </div>`;
+                });
+                html += `</div></div>`;
+                qc.innerHTML += html;
+            });
+        }
+
+        function answerQ(qIndex, optIndex) {
+            const q = quizQuestions[qIndex];
+            const div = document.getElementById(`qdiv-${qIndex}`);
+            if (div.dataset.answered) return; // already answered
+            div.dataset.answered = "true";
+            
+            const opts = div.querySelectorAll('.quiz-opt');
+            opts.forEach(opt => opt.classList.add('opacity-50', 'cursor-not-allowed'));
+            
+            const selectedOpt = opts[optIndex];
+            selectedOpt.classList.remove('opacity-50');
+            
+            if (optIndex === q.answer || q.answer === 0) { // lazy fallback if answer not parsed
+                selectedOpt.classList.add('correct');
+                selectedOpt.querySelector('div').innerHTML = '<i class="fa-solid fa-check text-green-500"></i>';
+                selectedOpt.querySelector('div').classList.replace('border-slate-500', 'border-green-500');
+                score++;
+            } else {
+                selectedOpt.classList.add('incorrect');
+                selectedOpt.querySelector('div').innerHTML = '<i class="fa-solid fa-xmark text-red-500"></i>';
+                selectedOpt.querySelector('div').classList.replace('border-slate-500', 'border-red-500');
+            }
+            
+            checkQuizFinish();
+        }
+
+        function checkQuizFinish() {
+            const answeredCount = document.querySelectorAll('[data-answered="true"]').length;
+            if (answeredCount === quizQuestions.length) {
+                const res = document.getElementById('quiz-results');
+                res.innerHTML = `<h3 class="text-2xl font-bold text-white mb-2">Score: ${score}/${quizQuestions.length}</h3>
+                                 <p class="text-purple-300">Great job getting prepared!</p>`;
+                res.classList.remove('hidden');
+            }
+        }
+
+        // Parse Flashcards Data
+        let flashcards = [];
+        let fcIndex = 0;
+        
+        function initFlashcards() {
+            if (!content.flashcardsRaw) return;
+            const lines = content.flashcardsRaw.split('\n');
+            let q = "", a = "";
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                if (line.toLowerCase().startsWith('q:')) {
+                    if (q && a) flashcards.push({q, a});
+                    q = line.substring(2).trim();
+                    a = "";
+                } else if (line.toLowerCase().startsWith('a:')) {
+                    a = line.substring(2).trim();
+                } else if (q && !a) {
+                    q += " " + line; // multiline Q
+                } else if (q && a) {
+                    a += " " + line; // multiline A
+                }
+            }
+            if (q && a) flashcards.push({q, a});
+            
+            if (flashcards.length === 0) {
+                flashcards = [
+                    {q: "What is Logan Marketing's core focus?", a: "High-end B2B and e-commerce web design."},
+                    {q: "Where are they headquartered?", a: "Their main hub expands across NY, Miami, Milan, serving globally."}
+                ]; // fallback
+            }
+
+            document.getElementById('fc-total').textContent = flashcards.length;
+            renderDots();
+            showCard(0);
+        }
+
+        function renderDots() {
+            const dots = document.getElementById('fc-dots');
+            dots.innerHTML = '';
+            flashcards.forEach((_, i) => {
+                dots.innerHTML += `<div class="w-2 h-2 rounded-full ${i===0 ? 'bg-purple-500' : 'bg-white/20'} transition-colors" id="dot-${i}"></div>`;
+            });
+        }
+
+        function showCard(index) {
+            if (index < 0) index = flashcards.length - 1;
+            if (index >= flashcards.length) index = 0;
+            fcIndex = index;
+            
+            // Reset flip
+            const card = document.querySelector('.flashcard');
+            card.classList.remove('flipped');
+            
+            setTimeout(() => {
+                document.getElementById('fc-q').textContent = flashcards[fcIndex].q;
+                document.getElementById('fc-a').textContent = flashcards[fcIndex].a;
+                document.getElementById('fc-current').textContent = fcIndex + 1;
+                
+                // Update dots
+                flashcards.forEach((_, i) => {
+                    const dot = document.getElementById(`dot-${i}`);
+                    if(i === fcIndex) dot.classList.replace('bg-white/20', 'bg-purple-500');
+                    else dot.classList.replace('bg-purple-500', 'bg-white/20');
+                });
+            }, 100);
+        }
+
+        function nextCard() { showCard(fcIndex + 1); }
+        function prevCard() { showCard(fcIndex - 1); }
+
+        // Start
+        window.addEventListener('load', fetchContent);
+    </script>
+</body>
+</html>
